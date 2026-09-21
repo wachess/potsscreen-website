@@ -3,129 +3,531 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POTS Screen</title>
+<title>POTS Screen — Standing test &amp; heart-rate alerts for Wear OS</title>
+<meta name="description" content="A guided POTS standing test and heart-rate alerts on your Wear OS watch, with trends and exports on your Android phone. No account, no ads, and your health data stays on your devices.">
+<meta name="theme-color" content="#5B3FA8">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="POTS Screen">
+<meta property="og:description" content="A guided standing test and heart-rate alerts on your Wear OS watch, with trends on your phone.">
+<meta property="og:url" content="https://wachess.github.io/potsscreen-website/">
+<meta property="og:image" content="https://wachess.github.io/potsscreen-website/assets/og-image.jpg">
+<meta property="og:image:width" content="1024">
+<meta property="og:image:height" content="500">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 108 108'%3E%3Crect width='108' height='108' rx='26' fill='%235B3FA8'/%3E%3Cpath d='M16 60.8h17l4.8-5.8 4.8 9.6 5.8-33.6 5.8 45.2 4.8-26.9 4.8 3.8H89' fill='none' stroke='%23fff' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+
 <style>
-  :root { color-scheme: light dark; }
+  :root {
+    color-scheme: light;
+    --bg: #FDFCFF;
+    --ink: #1C1530;
+    --ink-2: #57506B;
+    --ink-3: #857E96;
+    --line: #ECE7F4;
+    --accent: #5B3FA8;
+    --accent-ink: #4A2F93;
+    --tint: #F4F0FB;
+    --tint-edge: #E9E2F6;
+    --ecg: #8C73D6;
+    --band: #1E1535;
+    --band-ink: #F1ECFB;
+    --band-ink-2: #B8AED0;
+    --band-line: #342A50;
+    --shadow: 0 30px 60px -20px rgba(38, 20, 86, .35), 0 12px 24px -12px rgba(38, 20, 86, .25);
+    --display: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+    --text: "Inter", -apple-system, "Segoe UI", Roboto, system-ui, sans-serif;
+    --gutter: 24px;
+    --max: 1120px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0F0C17;
+      --ink: #EEEAF6;
+      --ink-2: #ADA6BF;
+      --ink-3: #7D7690;
+      --line: #241E33;
+      --accent: #B7A3F4;
+      --accent-ink: #CDBEFA;
+      --tint: #17122A;
+      --tint-edge: #221B3A;
+      --ecg: #7A62C9;
+      --band: #17122A;
+      --band-line: #2C2444;
+      --shadow: 0 30px 60px -20px rgba(0, 0, 0, .7), 0 12px 24px -12px rgba(0, 0, 0, .5);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0F0C17;
+    --ink: #EEEAF6;
+    --ink-2: #ADA6BF;
+    --ink-3: #7D7690;
+    --line: #241E33;
+    --accent: #B7A3F4;
+    --accent-ink: #CDBEFA;
+    --tint: #17122A;
+    --tint-edge: #221B3A;
+    --ecg: #7A62C9;
+    --band: #17122A;
+    --band-line: #2C2444;
+    --shadow: 0 30px 60px -20px rgba(0, 0, 0, .7), 0 12px 24px -12px rgba(0, 0, 0, .5);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 0 20px 64px;
-    line-height: 1.55;
-    color: #1a1a1a;
-    background: #ffffff;
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 400 16px/1.6 var(--text);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
-  @media (prefers-color-scheme: dark) { body { color: #e6e6e6; background: #121212; } }
+  img { display: block; max-width: 100%; height: auto; }
+  a { color: inherit; }
+  h1, h2, h3 { font-family: var(--display); color: var(--ink); margin: 0; letter-spacing: -.025em; }
+  p { margin: 0; }
+  .stop { margin-left: -.07em; }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
 
-  nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 0;
-    border-bottom: 1px solid #e5e5e5;
-    margin-bottom: 40px;
+  /* ---------- header ---------- */
+  .top { position: relative; z-index: 2; }
+  .top .wrap { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: -.01em; }
+  .brand svg { width: 30px; height: 30px; flex: none; }
+  .top nav { display: flex; align-items: center; gap: 28px; font-size: 15px; }
+  .top nav a { text-decoration: none; color: var(--ink-2); }
+  .top nav a:hover { color: var(--ink); }
+  .top nav a.get {
+    color: #fff; background: #1C1530; padding: 8px 16px; border-radius: 999px; font-weight: 500;
   }
-  @media (prefers-color-scheme: dark) { nav { border-bottom-color: #2a2a2a; } }
-  nav .brand { font-weight: 700; font-size: 1.1rem; text-decoration: none; color: inherit; }
-  nav a.link { color: inherit; text-decoration: none; font-size: 0.95rem; opacity: 0.8; }
-  nav a.link:hover { opacity: 1; text-decoration: underline; }
+  .top nav a.get:hover { color: #fff; background: #000; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .top nav a.get { background: #EEEAF6; color: #1C1530; } }
+  :root[data-theme="dark"] .top nav a.get { background: #EEEAF6; color: #1C1530; }
 
-  .hero { text-align: center; padding: 24px 0 40px; }
-  .hero h1 { font-size: 2rem; margin-bottom: 8px; }
-  .hero p.tagline { font-size: 1.1rem; color: #555; max-width: 520px; margin: 0 auto; }
-  @media (prefers-color-scheme: dark) { .hero p.tagline { color: #aaa; } }
+  /* ---------- hero ---------- */
+  .hero { position: relative; background: var(--tint); border-bottom: 1px solid var(--tint-edge); overflow: hidden; margin-top: -72px; padding-top: 72px; }
+  .hero .wrap { display: grid; grid-template-columns: 1.02fr 1fr; gap: 40px; align-items: center; min-height: 600px; }
+  .hero-copy { padding: 56px 0 72px; }
+  .kicker { font-size: 14px; font-weight: 500; color: var(--accent); margin-bottom: 18px; }
+  .hero h1 { font-size: clamp(38px, 5.4vw, 60px); line-height: 1.04; font-weight: 800; letter-spacing: -.035em; max-width: 12ch; }
+  .lede { margin-top: 22px; font-size: 18px; line-height: 1.6; color: var(--ink-2); max-width: 32em; }
+  .cta { margin-top: 32px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .play { display: inline-block; line-height: 0; margin-left: -9px; }
+  .play img { height: 62px; width: auto; }
+  .cta small { font-size: 14px; color: var(--ink-3); }
 
-  .badge {
-    display: inline-block;
-    margin-top: 20px;
-    padding: 8px 16px;
-    border-radius: 20px;
-    background: #eef2ff;
-    color: #3730a3;
-    font-size: 0.85rem;
-    font-weight: 600;
+  .hero-art { position: relative; align-self: end; height: 560px; }
+  .hero-art .ecg { position: absolute; left: -40px; top: 150px; width: calc(100% + 240px); height: 110px;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%); mask-image: linear-gradient(90deg, transparent, #000 12%); }
+  .hero-art .phone { position: absolute; left: 50%; top: 40px; --w: 300px; margin-left: -120px; }
+  .hero-art .watch { position: absolute; left: 50%; top: 310px; --d: 200px; margin-left: -210px; z-index: 2; }
+
+  /* ---------- devices ---------- */
+  .phone {
+    position: relative; width: var(--w); padding: calc(var(--w) * .022);
+    border-radius: calc(var(--w) * .135);
+    background: linear-gradient(150deg, #3A3448 0%, #17131F 38%, #0C0A12 100%);
+    box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .08), inset 0 1px 0 rgba(255, 255, 255, .2), var(--shadow);
   }
-  @media (prefers-color-scheme: dark) { .badge { background: #1e1b3a; color: #b4b8ff; } }
-
-  h2 { font-size: 1.3rem; margin-top: 48px; margin-bottom: 16px; }
-
-  .features {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+  .phone img { width: 100%; aspect-ratio: 720 / 1600; border-radius: calc(var(--w) * .113); background: #F6F3FB; }
+  .phone::after { /* punch-hole camera */
+    content: ""; position: absolute; left: 50%; top: calc(var(--w) * .064);
+    width: calc(var(--w) * .032); height: calc(var(--w) * .032); margin-left: calc(var(--w) * -.016);
+    border-radius: 50%; background: radial-gradient(circle at 40% 35%, #3b3a48 0 20%, #07060b 60%);
   }
-  @media (max-width: 560px) { .features { grid-template-columns: 1fr; } }
-  .feature {
-    padding: 18px;
-    border: 1px solid #e5e5e5;
-    border-radius: 12px;
+  .watch {
+    position: relative; width: var(--d); height: var(--d); border-radius: 50%; padding: calc(var(--d) * .075);
+    background: conic-gradient(from 210deg, #57506a, #1d1a26 18%, #0d0b12 40%, #3b3548 60%, #15121c 80%, #57506a);
+    box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .1), var(--shadow);
   }
-  @media (prefers-color-scheme: dark) { .feature { border-color: #2a2a2a; } }
-  .feature h3 { margin: 0 0 8px; font-size: 1.02rem; }
-  .feature p { margin: 0; font-size: 0.92rem; color: #555; }
-  @media (prefers-color-scheme: dark) { .feature p { color: #aaa; } }
+  .watch img { width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 0 0 2px #000; background: #000; }
+  .watch::before { /* crown */
+    content: ""; position: absolute; top: 50%; right: -4.5%; width: 7%; height: 16%; transform: translateY(-50%);
+    border-radius: 6px; background: linear-gradient(90deg, #2b2635, #5b5470 60%, #2b2635); z-index: -1;
+  }
 
-  .platforms {
-    margin-top: 40px;
-    padding: 18px;
-    border-radius: 12px;
-    background: #f7f7f7;
-    text-align: center;
-    font-size: 0.95rem;
-  }
-  @media (prefers-color-scheme: dark) { .platforms { background: #1a1a1a; } }
+  /* ---------- sections ---------- */
+  section { padding: 104px 0; }
+  .label { font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 12px; }
+  h2 { font-size: clamp(30px, 3.6vw, 40px); line-height: 1.12; font-weight: 800; }
+  .intro { margin-top: 14px; font-size: 18px; color: var(--ink-2); max-width: 36em; }
 
-  footer {
-    margin-top: 64px;
-    padding-top: 24px;
-    border-top: 1px solid #e5e5e5;
-    font-size: 0.85rem;
-    color: #777;
-    text-align: center;
+  .steps { margin: 48px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; counter-reset: step; }
+  .steps li { border-top: 1px solid var(--line); padding-top: 22px; counter-increment: step; }
+  .steps li::before { content: counter(step); display: block; font: 700 14px/1 var(--display); color: var(--accent); margin-bottom: 14px; }
+  .steps h3 { font-size: 19px; font-weight: 700; letter-spacing: -.015em; margin-bottom: 8px; }
+  .steps p { color: var(--ink-2); font-size: 15.5px; }
+
+  .features { padding-top: 0; }
+  .feature { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
+  .feature + .feature { margin-top: 112px; }
+  .feature.flip .shot { order: 2; }
+  .feature h3 { font-size: clamp(26px, 3vw, 34px); line-height: 1.15; font-weight: 800; }
+  .feature .body > p:not(.label) { margin-top: 16px; font-size: 17px; color: var(--ink-2); }
+  .facts { margin: 26px 0 0; padding: 0; list-style: none; }
+  .facts li { position: relative; padding: 12px 0 12px 26px; border-top: 1px solid var(--line); font-size: 15.5px; color: var(--ink-2); }
+  .facts li:last-child { border-bottom: 1px solid var(--line); }
+  .facts li::before { content: ""; position: absolute; left: 2px; top: 22px; width: 12px; height: 2px; border-radius: 2px; background: var(--accent); }
+  .facts strong { color: var(--ink); font-weight: 600; }
+
+  .shot {
+    position: relative; overflow: hidden; border-radius: 28px; background: var(--tint);
+    border: 1px solid var(--tint-edge); height: 540px; isolation: isolate;
   }
-  @media (prefers-color-scheme: dark) { footer { border-top-color: #2a2a2a; color: #888; } }
-  footer a { color: inherit; }
+  .shot > * { position: absolute; }
+  /* per-shot device placement */
+  .s-test .w1 { --d: 230px; left: 12%; top: 13%; }
+  .s-test .w2 { --d: 260px; right: 11%; bottom: 11%; z-index: 2; }
+  .s-result .phone { --w: 290px; left: 50%; top: 56px; margin-left: -96px; }
+  .s-result .watch { --d: 176px; left: 50%; top: 318px; margin-left: -222px; z-index: 2; }
+  .s-alert .w1 { --d: 240px; left: 10%; top: 10%; }
+  .s-alert .w2 { --d: 240px; right: 10%; bottom: 10%; z-index: 2; }
+  .s-track .p1 { --w: 212px; left: 50%; top: 52px; margin-left: -224px; }
+  .s-track .p2 { --w: 212px; left: 50%; top: 104px; margin-left: 12px; }
+  .s-export .phone { --w: 290px; left: 50%; top: 56px; margin-left: -145px; }
+
+  /* ---------- privacy band ---------- */
+  .privacy { background: var(--band); color: var(--band-ink); }
+  .privacy h2 { color: var(--band-ink); }
+  .privacy .label { color: #C9B6FF; }
+  .privacy .intro { color: var(--band-ink-2); }
+  .pgrid { margin-top: 48px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+  .pgrid div { border-top: 1px solid var(--band-line); padding-top: 22px; }
+  .pgrid h3 { color: var(--band-ink); font-size: 19px; font-weight: 700; letter-spacing: -.015em; margin-bottom: 8px; }
+  .pgrid p { color: var(--band-ink-2); font-size: 15.5px; }
+  .pnote { margin-top: 48px; font-size: 14px; color: var(--band-ink-2); max-width: 46em; }
+  .pnote a { color: var(--band-ink); text-underline-offset: 3px; }
+
+  /* ---------- faq ---------- */
+  .faq .wrap { display: grid; grid-template-columns: 1fr 1.6fr; gap: 72px; align-items: start; }
+  .faq dl { margin: 0; }
+  details { border-top: 1px solid var(--line); }
+  details:last-child { border-bottom: 1px solid var(--line); }
+  summary {
+    list-style: none; cursor: pointer; padding: 20px 36px 20px 0; position: relative;
+    font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: -.01em;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after {
+    content: ""; position: absolute; right: 6px; top: 50%; width: 9px; height: 9px; margin-top: -7px;
+    border-right: 2px solid var(--ink-3); border-bottom: 2px solid var(--ink-3); transform: rotate(45deg); transition: transform .2s;
+  }
+  details[open] summary::after { transform: rotate(-135deg); margin-top: -2px; }
+  summary:hover::after { border-color: var(--ink); }
+  details p { padding: 0 36px 22px 0; color: var(--ink-2); font-size: 15.5px; }
+  details p a { color: var(--accent); text-underline-offset: 3px; }
+
+  /* ---------- about / requirements ---------- */
+  .notes { padding-top: 0; }
+  .notes .wrap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+  .notes .wrap > div { background: var(--tint); border: 1px solid var(--tint-edge); border-radius: 20px; padding: 26px 26px 28px; }
+  .notes h3 { font-size: 16px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 10px; }
+  .notes p, .notes li { font-size: 15px; color: var(--ink-2); }
+  .notes ul { margin: 0; padding-left: 18px; }
+  .notes li + li { margin-top: 6px; }
+
+  /* ---------- footer ---------- */
+  footer { border-top: 1px solid var(--line); padding: 32px 0 48px; font-size: 14px; color: var(--ink-3); }
+  footer .wrap { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  footer .brand { font-size: 15px; color: var(--ink); }
+  footer .brand svg { width: 24px; height: 24px; }
+  footer nav { display: flex; gap: 24px; }
+  footer nav a { text-decoration: none; color: var(--ink-2); }
+  footer nav a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+  a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 960px) {
+    .hero .wrap { grid-template-columns: 1fr; gap: 0; min-height: 0; }
+    .hero-copy { padding: 40px 0 8px; }
+    .hero-art { height: 470px; }
+    .hero-art .phone { --w: 260px; top: 30px; margin-left: -100px; }
+    .hero-art .watch { --d: 170px; top: 250px; margin-left: -180px; }
+    .feature, .faq .wrap { grid-template-columns: 1fr; gap: 36px; }
+    .feature.flip .shot { order: 0; }
+    .feature + .feature { margin-top: 88px; }
+    .notes .wrap { grid-template-columns: 1fr; gap: 16px; }
+  }
+  @media (max-width: 720px) {
+    :root { --gutter: 16px; }
+    section { padding: 72px 0; }
+    .top nav a:not(.get) { display: none; }
+    .steps, .pgrid { grid-template-columns: 1fr; gap: 28px; }
+    .lede, .intro, .feature .body > p:not(.label) { font-size: 16.5px; }
+    .hero h1 { max-width: none; }
+    h2 { font-size: 28px; }
+    h2 br { display: none; }
+    .shot { height: 440px; border-radius: 22px; }
+    .s-test .w1 { --d: 180px; left: 6%; top: 8%; }
+    .s-test .w2 { --d: 200px; right: 6%; bottom: 8%; }
+    .s-result .phone, .s-export .phone { --w: 240px; }
+    .s-result .phone { margin-left: -90px; top: 40px; }
+    .s-result .watch { --d: 140px; top: 260px; margin-left: -160px; }
+    .s-export .phone { margin-left: -120px; top: 40px; }
+    .s-alert .w1 { --d: 190px; left: 5%; top: 7%; }
+    .s-alert .w2 { --d: 190px; right: 5%; bottom: 7%; }
+    .s-track .p1, .s-track .p2 { --w: 190px; }
+    .s-track .p1 { margin-left: -196px; top: 36px; }
+    .s-track .p2 { margin-left: 6px; top: 80px; }
+  }
+  @media (max-width: 400px) {
+    .hero-art { height: 420px; }
+    .hero-art .phone { --w: 224px; margin-left: -84px; }
+    .hero-art .watch { --d: 148px; top: 220px; margin-left: -156px; }
+    .s-test .w1 { --d: 160px; }
+    .s-test .w2 { --d: 176px; }
+    .s-alert .w1, .s-alert .w2 { --d: 168px; }
+    .s-track .p1, .s-track .p2 { --w: 164px; }
+    .s-track .p1 { margin-left: -170px; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 </style>
 </head>
 <body>
 
-<nav>
-  <a class="brand" href="index.html">POTS Screen</a>
-  <a class="link" href="privacy.html">Privacy Policy</a>
-</nav>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="POTS Screen home">
+      <svg viewBox="0 0 108 108" aria-hidden="true"><rect width="108" height="108" rx="28" fill="#5B3FA8"/><path d="M16 60.8h17l4.8-5.8 4.8 9.6 5.8-33.6 5.8 45.2 4.8-26.9 4.8 3.8H86.4" fill="none" stroke="#fff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="87" cy="53.6" r="3.4" fill="#E7E0F7"/></svg>
+      POTS Screen
+    </a>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#faq">FAQ</a>
+      <a href="privacy.html">Privacy</a>
+      <a class="get" href="https://play.google.com/store/apps/details?id=com.matthewh.potsscreen&amp;referrer=utm_source%3Dwebsite%26utm_medium%3Dheader">Get the app</a>
+    </nav>
+  </div>
+</header>
+
+<main>
 
 <div class="hero">
-  <h1>POTS Screen</h1>
-  <p class="tagline">A private, on-device companion for tracking POTS-related heart-rate symptoms — no accounts, no cloud, no tracking.</p>
-  <div class="badge">Android + Wear OS</div>
-</div>
-
-<h2>What it does</h2>
-<div class="features">
-  <div class="feature">
-    <h3>Guided Standing Test</h3>
-    <p>Run a guided orthostatic screening test that compares your heart-rate rise against commonly used clinical thresholds, adjusted for teens vs. adults.</p>
-  </div>
-  <div class="feature">
-    <h3>Passive Heart-Rate Monitoring</h3>
-    <p>Your watch continuously tracks heart rate and step counts, and flags unusual resting heart-rate spikes automatically.</p>
-  </div>
-  <div class="feature">
-    <h3>Charts &amp; History</h3>
-    <p>Review your heart-rate trends, standing test results, and activity history at a glance.</p>
-  </div>
-  <div class="feature">
-    <h3>Full Data Control</h3>
-    <p>Choose how long data is kept, export it as CSV anytime, or delete it — all from the Storage screen.</p>
+  <div class="wrap">
+    <div class="hero-copy">
+      <p class="kicker">For Wear OS watches and Android phones</p>
+      <h1>Track POTS with your watch and phone<span class="stop">.</span></h1>
+      <p class="lede">Take a guided standing test on your wrist, get a buzz when your heart rate spikes while you're still, and see how things change over weeks and months.</p>
+      <div class="cta">
+        <a class="play" href="https://play.google.com/store/apps/details?id=com.matthewh.potsscreen&amp;referrer=utm_source%3Dwebsite%26utm_medium%3Dhero">
+          <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" width="161" height="62">
+        </a>
+        <small>Free &middot; No account &middot; No ads</small>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <svg class="ecg" viewBox="0 0 1120 160" preserveAspectRatio="none"><path d="M0 96 H150 l22-40 26 86 24-116 22 90 14-20 H700 l16-26 18 52 16-34 H1120" fill="none" stroke="var(--ecg)" stroke-opacity=".35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>
+      <div class="phone"><img src="assets/phone-home.webp" alt="" width="720" height="1600" fetchpriority="high"></div>
+      <div class="watch"><img src="assets/watch-standing.webp" alt="" width="454" height="454"></div>
+    </div>
   </div>
 </div>
 
-<div class="platforms">
-  Runs as a Wear OS watch app paired with an Android phone companion app. All heart-rate, step, and standing-test data stays on your devices — nothing is sent to the developer or any third party.
-</div>
+<section id="how">
+  <div class="wrap">
+    <p class="label">How it works</p>
+    <h2>Your watch collects the data<span class="stop">.</span><br> Your phone is the dashboard<span class="stop">.</span></h2>
+    <ol class="steps">
+      <li>
+        <h3>Install it on your phone</h3>
+        <p>Get POTS Screen from Google Play. The watch app installs on your paired Wear OS watch.</p>
+      </li>
+      <li>
+        <h3>Take a standing test</h3>
+        <p>Start one from your watch whenever you like. It guides you through lying down and standing up.</p>
+      </li>
+      <li>
+        <h3>Wear it as usual</h3>
+        <p>Heart rate, steps and alerts are recorded in the background and sync to your phone on their own.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="wrap">
+
+    <div class="feature">
+      <div class="shot s-test">
+        <div class="watch w1"><img src="assets/watch-lying.webp" alt="Watch screen during the lying phase of a standing test: 78 bpm, 2 minutes 29 seconds left" width="454" height="454" loading="lazy"></div>
+        <div class="watch w2"><img src="assets/watch-standing.webp" alt="Watch screen during the standing phase: 99 bpm, with the heart-rate graph jumping after standing up" width="454" height="454" loading="lazy"></div>
+      </div>
+      <div class="body">
+        <p class="label">Standing test</p>
+        <h3>A guided standing test on your wrist</h3>
+        <p>Lie down while your watch measures your resting heart rate. When it buzzes, stand up and stay standing while it keeps recording. No timer, no counting your pulse and no second person needed.</p>
+        <ul class="facts">
+          <li><strong>10 minutes lying, 5 standing</strong> by default. Set each phase anywhere from 3 to 15 minutes.</li>
+          <li>Compared with a commonly used screening threshold: a <strong>sustained rise of 30+ bpm</strong> after standing, or 40+ bpm under 18.</li>
+          <li>Every test is saved, so you can see how your results change over time.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feature flip">
+      <div class="shot s-result">
+        <div class="phone"><img src="assets/phone-test.webp" alt="Standing test result on the phone: meets POTS threshold, heart rate increased by 41 bpm, with the heart-rate graph and resting, max and increase values" width="720" height="1600" loading="lazy"></div>
+        <div class="watch"><img src="assets/watch-result.webp" alt="Standing test result on the watch showing resting, max and the change in heart rate" width="454" height="454" loading="lazy"></div>
+      </div>
+      <div class="body">
+        <p class="label">Results</p>
+        <h3>See exactly how much your heart rate rose</h3>
+        <p>Each result shows your resting heart rate, your peak after standing and the difference between them, along with the full graph of the test.</p>
+        <ul class="facts">
+          <li>Check results on your watch right away, or look at the details on your phone.</li>
+          <li>Browse past tests by week, month or year.</li>
+          <li>Share a single test in a couple of taps.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="shot s-alert">
+        <div class="watch w1"><img src="assets/watch-alert.webp" alt="Watch notification: Heart Rate Alert, heart rate increased by 31 BPM over 4 steps" width="454" height="454" loading="lazy"></div>
+        <div class="watch w2"><img src="assets/watch-alert-high.webp" alt="Watch notification: High Heart Rate Alert, heart rate reached 138 BPM, alert threshold 130 BPM" width="454" height="454" loading="lazy"></div>
+      </div>
+      <div class="body">
+        <p class="label">Heart-rate alerts</p>
+        <h3>A buzz when your heart rate spikes at rest</h3>
+        <p>Your watch lets you know when your heart rate jumps by 20 bpm or more within 30 seconds while you've taken fewer than 15 steps, so exercise doesn't set it off.</p>
+        <ul class="facts">
+          <li>Optional <strong>high heart-rate alerts</strong> at a limit you choose, from 100 to 200 bpm.</li>
+          <li>Spike alerts are saved, so you can see which days and times they tend to happen.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feature flip">
+      <div class="shot s-track">
+        <div class="phone p1"><img src="assets/phone-tracking.webp" alt="Tracking screen for one day: heart-rate graph with average, max and min, and a steps graph" width="720" height="1600" loading="lazy"></div>
+        <div class="phone p2"><img src="assets/phone-trends.webp" alt="Overview with total alerts, average heart rate, average daily steps, alerts per weekday and a time-of-day chart" width="720" height="1600" loading="lazy"></div>
+      </div>
+      <div class="body">
+        <p class="label">Tracking &amp; trends</p>
+        <h3>Heart rate and steps, recorded all day</h3>
+        <p>There's nothing to start or stop. Your watch records in the background, and your phone shows each day's heart rate, steps and alerts. Expand any graph to take a closer look at part of your day.</p>
+        <ul class="facts">
+          <li><strong>Weekly, monthly, yearly and custom</strong> overviews of alerts, average heart rate and daily steps.</li>
+          <li>A time-of-day chart shows when your alerts tend to cluster.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="shot s-export">
+        <div class="phone"><img src="assets/phone-export.webp" alt="Export screen with Save to device and Share buttons, and storage controls below" width="720" height="1600" loading="lazy"></div>
+      </div>
+      <div class="body">
+        <p class="label">Export</p>
+        <h3>Easy to bring to your doctor</h3>
+        <p>Export everything in one ZIP file: a spreadsheet-friendly CSV for each day, a graph of each day, and every standing test with its summary, data and graph.</p>
+        <ul class="facts">
+          <li>Files open straight in Excel or Google Sheets, with a README that explains each one.</li>
+          <li>Save it to your phone, or share it to email, Drive or anywhere else.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="privacy" id="privacy">
+  <div class="wrap">
+    <p class="label">Privacy</p>
+    <h2>Your health data stays with you<span class="stop">.</span></h2>
+    <p class="intro">POTS Screen was built to keep what it records on your own devices.</p>
+    <div class="pgrid">
+      <div>
+        <h3>On your watch and phone</h3>
+        <p>Heart rate, steps, alerts and test results are stored only on your devices and sync directly between them. They're never uploaded to the developer or anyone else.</p>
+      </div>
+      <div>
+        <h3>No account, no ads</h3>
+        <p>There's nothing to sign up for, no ads and no subscription. Automatic cloud backup is turned off, too.</p>
+      </div>
+      <div>
+        <h3>Yours to export or delete</h3>
+        <p>Keep everything or only recent months, export a full copy whenever you like, or delete data from the Storage screen.</p>
+      </div>
+    </div>
+    <p class="pnote">To help improve the apps, they send basic usage statistics and crash reports to Google Firebase. These never include your heart rate, steps, test results or any other health information. <a href="privacy.html">Read the full privacy policy</a>.</p>
+  </div>
+</section>
+
+<section class="faq" id="faq">
+  <div class="wrap">
+    <div>
+      <p class="label">FAQ</p>
+      <h2>Questions</h2>
+    </div>
+    <div>
+      <details>
+        <summary>Which watches does it work with?</summary>
+        <p>Watches running Wear OS 4 or newer with a heart-rate sensor, such as Google Pixel Watch and Samsung Galaxy Watch4 or later. It doesn't work on watches that don't run Wear OS, like Apple Watch, Garmin or Fitbit trackers.</p>
+      </details>
+      <details>
+        <summary>Do I need both the phone and watch apps?</summary>
+        <p>Yes. The watch does the measuring, and the phone is where your history, trends and exports live. The phone app can't record anything without a watch. You'll need an Android phone running Android 13 or newer.</p>
+      </details>
+      <details>
+        <summary>Can it tell me if I have POTS?</summary>
+        <p>No. POTS Screen is a screening aid, not a medical device. It doesn't diagnose any condition and doesn't measure blood pressure. It's meant to give you and your doctor a clearer, more objective picture of what your heart rate is doing.</p>
+      </details>
+      <details>
+        <summary>How accurate are the readings?</summary>
+        <p>Everything comes from your watch's heart-rate sensor, so results depend on it. How snugly the watch fits, medication, hydration and other factors can all affect a reading. Talk to your doctor about what your results mean for you.</p>
+      </details>
+      <details>
+        <summary>Does it cost anything?</summary>
+        <p>No. It's free, with no ads, subscriptions or in-app purchases.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="notes">
+  <div class="wrap">
+    <div>
+      <h3>About</h3>
+      <p>POTS Screen was made by someone with POTS, for people with POTS, to make it easier to track the condition objectively over time.</p>
+    </div>
+    <div>
+      <h3>Requirements</h3>
+      <ul>
+        <li>Android phone with Android 13 or newer</li>
+        <li>Wear OS 4 or newer watch with a heart-rate sensor</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Important</h3>
+      <p>POTS Screen does not diagnose, treat, cure or prevent any medical condition. Always talk to a qualified healthcare provider about your results.</p>
+    </div>
+  </div>
+</section>
+
+</main>
 
 <footer>
-  <p><a href="privacy.html">Privacy Policy</a></p>
+  <div class="wrap">
+    <a class="brand" href="./">
+      <svg viewBox="0 0 108 108" aria-hidden="true"><rect width="108" height="108" rx="28" fill="#5B3FA8"/><path d="M16 60.8h17l4.8-5.8 4.8 9.6 5.8-33.6 5.8 45.2 4.8-26.9 4.8 3.8H86.4" fill="none" stroke="#fff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="87" cy="53.6" r="3.4" fill="#E7E0F7"/></svg>
+      POTS Screen
+    </a>
+    <nav>
+      <a href="https://play.google.com/store/apps/details?id=com.matthewh.potsscreen&amp;referrer=utm_source%3Dwebsite%26utm_medium%3Dfooter">Google Play</a>
+      <a href="privacy.html">Privacy policy</a>
+    </nav>
+  </div>
 </footer>
 
 </body>
